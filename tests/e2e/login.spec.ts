@@ -6,7 +6,10 @@ test.describe('Login', () => {
   test('login con credenciales válidas', async ({ page }) => {
     const loginPage = new LoginPage(page);
     await loginPage.navigate();
-    await loginPage.login('customer@practicesoftwaretesting.com', 'welcome01');
+    await loginPage.login(
+      process.env.USER_EMAIL!,
+      process.env.USER_PASSWORD!
+    );
     await expect(page).toHaveURL('/account');
   });
 

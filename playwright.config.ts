@@ -1,4 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+dotenv.config();
 
 /**
  * Read environment variables from file.
@@ -26,7 +28,7 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL: 'https://practicesoftwaretesting.com', // URL base, así en los tests solo pones page.goto('/login')
+    baseURL: process.env.BASE_URL, // URL base, así en los tests solo pones page.goto('/login')
     trace: 'on-first-retry',    // graba trace cuando reintenta un test fallido
     screenshot: 'only-on-failure', // captura pantalla solo si falla
     video: 'on-first-retry',    // graba video cuando reintenta
