@@ -32,7 +32,7 @@ export default defineConfig({
     trace: 'on-first-retry',    // graba trace cuando reintenta un test fallido
     screenshot: 'only-on-failure', // captura pantalla solo si falla
     video: 'on-first-retry',    // graba video cuando reintenta
-    headless: true,
+    headless: false,
 
   },
  
