@@ -19,7 +19,7 @@ jobs:
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test
-        env:
+      env:
         BASE_URL: ${{ vars.BASE_URL }}
         API_URL: ${{ vars.API_URL }}
         USER_EMAIL: ${{ secrets.USER_EMAIL }}
