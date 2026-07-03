@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const API_URL = 'https://api.practicesoftwaretesting.com';
+const API_URL = process.env.API_URL;
 
 test.describe('API - Auth', () => {
 

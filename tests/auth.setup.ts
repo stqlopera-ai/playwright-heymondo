@@ -1,4 +1,4 @@
-import { test as setup, request } from '@playwright/test';
+import { test as setup, request, expect } from '@playwright/test';
 
 const authFile = 'playwright/.auth/user.json';
 
@@ -15,6 +15,8 @@ setup('authenticate', async ({ page }) => {
     }
   );
 
+  expect(response.ok()).toBeTruthy();
+
   const { access_token } = await response.json();
 
   await page.goto('/');
@@ -23,4 +25,5 @@ setup('authenticate', async ({ page }) => {
   }, access_token);
 
   await page.context().storageState({ path: authFile });
+  await apiRequest.dispose();
 });
