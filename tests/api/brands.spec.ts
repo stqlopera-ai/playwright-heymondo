@@ -52,6 +52,9 @@ test.describe('API - Brands', () => {
   });
 
   test('GET /brands/search?q= filters by name', async ({ request }) => {
+    const allResponse = await request.get(`${API_URL}/brands`);
+    const allBrands = await logAndParse(allResponse);
+
     const response = await request.get(`${API_URL}/brands/search?q=Forge`);
 
     expect(response.status()).toBe(200);
@@ -59,6 +62,7 @@ test.describe('API - Brands', () => {
     const body = await logAndParse(response);
     expect(Array.isArray(body)).toBe(true);
     expect(body.length).toBeGreaterThan(0);
+    expect(body.length).toBeLessThan(allBrands.length);
 
     for (const brand of body) {
       expect(brand.name.toLowerCase()).toContain('forge');
