@@ -20,6 +20,23 @@ test.describe('API - Auth', () => {
     expect(typeof body.access_token).toBe('string');
   });
 
+  test('login with admin returns admin role', async ({ request }) => {
+    const response = await request.post(`${API_URL}/users/login`, {
+      data: {
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      }
+    });
+
+    expect(response.status()).toBe(200);
+
+    const body = await logAndParse(response);
+    expect(body).toHaveProperty('access_token');
+
+    const payload = JSON.parse(Buffer.from(body.access_token.split('.')[1], 'base64').toString());
+    expect(payload).toHaveProperty('role', 'admin');
+  });
+
   test('login returns 401 with invalid credentials', async ({ request }) => {
     const response = await request.post(`${API_URL}/users/login`, {
       data: {

@@ -91,4 +91,80 @@ test.describe('API - Products', () => {
     expect(Array.isArray(body.data)).toBe(true);
   });
 
+  test('POST /products creates a new product', async ({ request }) => {
+    const categoriesResponse = await request.get(`${API_URL}/categories`);
+    const categories = await logAndParse(categoriesResponse);
+    const category = categories.find((c: any) => c.name === 'Power Tools');
+
+    const brandsResponse = await request.get(`${API_URL}/brands`);
+    const brands = await logAndParse(brandsResponse);
+    const brand = brands[0];
+
+    const imagesResponse = await request.get(`${API_URL}/images`);
+    const images = await logAndParse(imagesResponse);
+    const imageId = images[0].id;
+
+    const uniqueId = Date.now();
+    const response = await request.post(`${API_URL}/products`, {
+      data: {
+        name: `Test Product ${uniqueId}`,
+        description: 'Test description',
+        price: 19.99,
+        category_id: category.id,
+        brand_id: brand.id,
+        product_image_id: imageId,
+        is_location_offer: false,
+        is_rental: false,
+      }
+    });
+
+    expect(response.status()).toBe(201);
+
+    const body = await logAndParse(response);
+    expect(body).toHaveProperty('id');
+    expect(body).toHaveProperty('name', `Test Product ${uniqueId}`);
+  });
+
+  test('DELETE /products/{id} deletes product with admin auth', async ({ request }) => {
+    const loginResponse = await request.post(`${API_URL}/users/login`, {
+      data: {
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      }
+    });
+    const { access_token } = await logAndParse(loginResponse);
+
+    const categoriesResponse = await request.get(`${API_URL}/categories`);
+    const categories = await logAndParse(categoriesResponse);
+    const category = categories.find((c: any) => c.name === 'Power Tools');
+
+    const brandsResponse = await request.get(`${API_URL}/brands`);
+    const brands = await logAndParse(brandsResponse);
+    const brand = brands[0];
+
+    const imagesResponse = await request.get(`${API_URL}/images`);
+    const images = await logAndParse(imagesResponse);
+    const imageId = images[0].id;
+
+    const createResponse = await request.post(`${API_URL}/products`, {
+      data: {
+        name: `TempProduct ${Date.now()}`,
+        description: 'Temp',
+        price: 9.99,
+        category_id: category.id,
+        brand_id: brand.id,
+        product_image_id: imageId,
+        is_location_offer: false,
+        is_rental: false,
+      }
+    });
+    const { id: productId } = await logAndParse(createResponse);
+
+    const deleteResponse = await request.delete(`${API_URL}/products/${productId}`, {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+  });
+
 });

@@ -37,4 +37,39 @@ test.describe('API - Categories', () => {
     }
   });
 
+  test('POST /categories creates a new category', async ({ request }) => {
+    const uniqueId = Date.now();
+    const response = await request.post(`${API_URL}/categories`, {
+      data: { name: `Test Cat ${uniqueId}`, slug: `test-cat-${uniqueId}` }
+    });
+
+    expect(response.status()).toBe(201);
+
+    const body = await logAndParse(response);
+    expect(body).toHaveProperty('id');
+    expect(body).toHaveProperty('name', `Test Cat ${uniqueId}`);
+    expect(body).toHaveProperty('slug', `test-cat-${uniqueId}`);
+  });
+
+  test('DELETE /categories/{id} deletes category with admin auth', async ({ request }) => {
+    const loginResponse = await request.post(`${API_URL}/users/login`, {
+      data: {
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      }
+    });
+    const { access_token } = await logAndParse(loginResponse);
+
+    const createResponse = await request.post(`${API_URL}/categories`, {
+      data: { name: `TempCat ${Date.now()}`, slug: `temp-cat-${Date.now()}` }
+    });
+    const { id: categoryId } = await logAndParse(createResponse);
+
+    const deleteResponse = await request.delete(`${API_URL}/categories/${categoryId}`, {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+
+    expect(deleteResponse.status()).toBe(204);
+  });
+
 });
