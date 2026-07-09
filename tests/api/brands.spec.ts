@@ -81,13 +81,43 @@ test.describe('API - Brands', () => {
     expect(body).toHaveProperty('id');
     expect(body).toHaveProperty('name', `Test Brand ${uniqueId}`);
     expect(body).toHaveProperty('slug', `test-brand-${uniqueId}`);
+
+    const allResponse = await request.get(`${API_URL}/brands`);
+    const allBrands = await logAndParse(allResponse);
+    const names = allBrands.map((b: any) => b.name);
+    expect(names).toContain(`Test Brand ${uniqueId}`);
   });
 
   test('DELETE /brands/{id} returns 401 without auth', async ({ request }) => {
-    const response = await request.delete(`${API_URL}/brands/1`);
+    const listResponse = await request.get(`${API_URL}/brands`);
+    const brands = await logAndParse(listResponse);
+    const brandId = brands[0].id;
+
+    const response = await request.delete(`${API_URL}/brands/${brandId}`);
 
     await logAndParse(response);
     expect(response.status()).toBe(401);
+  });
+
+  test('DELETE /brands/{id} deletes brand with admin auth', async ({ request }) => {
+    const loginResponse = await request.post(`${API_URL}/users/login`, {
+      data: {
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASSWORD,
+      }
+    });
+    const { access_token } = await logAndParse(loginResponse);
+
+    const createResponse = await request.post(`${API_URL}/brands`, {
+      data: { name: `TempDelete ${Date.now()}`, slug: `temp-delete-${Date.now()}` }
+    });
+    const { id: brandId } = await logAndParse(createResponse);
+
+    const deleteResponse = await request.delete(`${API_URL}/brands/${brandId}`, {
+      headers: { Authorization: `Bearer ${access_token}` }
+    });
+
+    expect(deleteResponse.status()).toBe(204);
   });
 
 });
