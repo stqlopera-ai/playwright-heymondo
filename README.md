@@ -1,0 +1,124 @@
+# Playwright HeyMondo
+
+Automated test suite for [Practice Software Testing](https://practicesoftwaretesting.com) — a demo e-commerce platform — built with [Playwright](https://playwright.dev/).
+
+Covers both **REST API** and **UI (End-to-End)** testing, with role-based access control validation (user vs admin).
+
+## Tech Stack
+
+| Technology | Purpose |
+| ---------- | ------- |
+| Node.js / TypeScript | Language & runtime |
+| Playwright v1.60 | Test framework & browser automation |
+| dotenv | Environment variable management |
+| GitHub Actions | CI/CD pipeline |
+
+## Prerequisites
+
+- Node.js 18+
+- npm
+
+## Installation
+
+```bash
+git clone <repo-url>
+cd playwright-heymondo
+npm install
+npx playwright install --with-deps
+```
+
+## Configuration
+
+Copy the environment file and fill in your credentials:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+| -------- | ----------- |
+| `BASE_URL` | Web application URL (`https://practicesoftwaretesting.com`) |
+| `API_URL` | REST API URL (`https://api.practicesoftwaretesting.com`) |
+| `USER_EMAIL` | Regular user email |
+| `USER_PASSWORD` | Regular user password |
+| `ADMIN_EMAIL` | Admin user email |
+| `ADMIN_PASSWORD` | Admin user password |
+
+## Running Tests
+
+```bash
+# Run all tests
+npx playwright test
+
+# Run API tests only
+npx playwright test tests/api
+
+# Run UI tests only
+npx playwright test tests/e2e
+
+# Run with visible browser
+npx playwright test --headed
+
+# Debug mode (Playwright Inspector)
+npx playwright test --debug
+
+# Run a single test file
+npx playwright test tests/api/auth.spec.ts
+```
+
+### View Reports
+
+```bash
+npx playwright show-report
+```
+
+## Project Structure
+
+```
+├── fixtures/           # Custom Playwright fixtures (Page Object injection)
+├── pages/              # Page Object Model classes
+│   ├── LoginPage.ts
+│   └── ProductsPage.ts
+├── playwright/         # Auth state storage
+├── tests/
+│   ├── api/            # API tests (auth, brands, categories, products, reports, users)
+│   ├── e2e/            # UI tests (login, products)
+│   └── auth.setup.ts   # Global authentication setup
+├── utils/              # Helpers (API logger)
+├── .github/workflows/  # CI/CD pipeline
+└── playwright.config.ts
+```
+
+## Test Coverage
+
+### API Tests (6 spec files)
+
+- **Authentication** — login, token validation, protected endpoints, invalid credentials
+- **Products** — CRUD, pagination, search, category filter, admin-only deletion
+- **Categories** — CRUD, subcategory hierarchy, admin-only deletion
+- **Brands** — CRUD, search, admin-only deletion
+- **Reports** — 7 admin-only report endpoints with role-based access
+- **Users** — profile, user list (admin), invoices, messages, registration
+
+### UI Tests (2 spec files)
+
+- **Login** — valid login redirect, invalid credentials error
+- **Products** — product listing, search by text, category filter
+
+## CI/CD
+
+The GitHub Actions workflow (`playwright.yml`) runs on every push and pull request to `main`/`master`:
+
+- Installs dependencies and Playwright browsers
+- Runs the full test suite
+- Uploads the HTML report as an artifact (retained 30 days)
+
+Required repository secrets and variables:
+
+- `USER_EMAIL`, `USER_PASSWORD` (secrets)
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD` (secrets)
+- `BASE_URL`, `API_URL` (variables)
+
+## VS Code Debugging
+
+Launch configuration included (`.vscode/launch.json`). Use the **Debug Playwright** configuration to run tests with the Playwright Inspector.
