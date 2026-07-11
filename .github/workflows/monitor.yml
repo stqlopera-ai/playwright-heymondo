@@ -1,0 +1,63 @@
+name: Monitor & Run Tests
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Cada 5 minutos
+  workflow_dispatch:
+
+jobs:
+  check-and-run:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check if account is unlocked
+      id: check
+      run: |
+        RESPONSE=$(curl -s -w "%{http_code}" -X POST "${{ secrets.API_URL }}/users/login" \
+          -H "Content-Type: application/json" \
+          -d '{"email":"${{ secrets.USER_EMAIL }}","password":"${{ secrets.USER_PASSWORD }}"}' \
+          -o /tmp/login.json)
+        
+        echo "HTTP Status: $RESPONSE"
+        cat /tmp/login.json
+        
+        if [ "$RESPONSE" = "200" ]; then
+          echo "unlocked=true" >> $GITHUB_OUTPUT
+        else
+          echo "unlocked=false" >> $GITHUB_OUTPUT
+        fi
+
+    - uses: actions/setup-node@v4
+      if: steps.check.outputs.unlocked == 'true'
+      with:
+        node-version: lts/*
+
+    - name: Install dependencies
+      if: steps.check.outputs.unlocked == 'true'
+      run: npm ci
+
+    - name: Install Playwright Browsers
+      if: steps.check.outputs.unlocked == 'true'
+      run: npx playwright install --with-deps
+
+    - name: Run tests
+      if: steps.check.outputs.unlocked == 'true'
+      run: npx playwright test
+      env:
+        BASE_URL: ${{ vars.BASE_URL }}
+        API_URL: ${{ vars.API_URL }}
+        USER_EMAIL: ${{ secrets.USER_EMAIL }}
+        USER_PASSWORD: ${{ secrets.USER_PASSWORD }}
+        ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+        ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+
+    - uses: actions/upload-artifact@v4
+      if: steps.check.outputs.unlocked == 'true' && !cancelled()
+      with:
+        name: playwright-report-monitor
+        path: playwright-report/
+        retention-days: 30
+
+    - name: Skip - account still locked
+      if: steps.check.outputs.unlocked == 'false'
+      run: echo "Cuenta aun bloqueada. Reintentando en 5 minutos..."
