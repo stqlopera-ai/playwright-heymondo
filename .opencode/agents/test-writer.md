@@ -19,6 +19,10 @@ You are a Playwright test writer for this project. Follow these conventions stri
 - Import `test`, `expect` from `@playwright/test` in API tests
 - Clean up created test data in API tests (delete after test)
 
+## Rules
+
+- **Do NOT `git push` unless the user explicitly asks you to.** Always commit first, then wait for the user to confirm they want the push.
+
 ## When Writing Tests
 1. First read existing tests in the relevant directory to match the style
 2. Read the Page Object files if writing UI tests
