@@ -32,8 +32,10 @@ export default defineConfig({
     trace: 'on-first-retry',    // record trace on failed test retry
     screenshot: 'only-on-failure', // capture screenshot only on failure
     video: 'on-first-retry',    // record video on retry
-    headless: false,
-
+    headless: true,
+    launchOptions: {
+      args: ['--ozone-platform=wayland'],
+    },
   },
  
   /* Configure projects for major browsers */
@@ -41,6 +43,7 @@ export default defineConfig({
     {
       name: 'setup',
       testMatch: '**/auth.setup.ts',
+      use: { headless: true },
     },
     {
       name: 'chromium',
