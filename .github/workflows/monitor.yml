@@ -13,7 +13,7 @@ jobs:
     - name: Check if account is unlocked
       id: check
       run: |
-        RESPONSE=$(curl -s -w "%{http_code}" -X POST "${{ secrets.API_URL }}/users/login" \
+        RESPONSE=$(curl -s -w "%{http_code}" -X POST "${{ vars.API_URL }}/users/login" \
           -H "Content-Type: application/json" \
           -d '{"email":"${{ secrets.USER_EMAIL }}","password":"${{ secrets.USER_PASSWORD }}"}' \
           -o /tmp/login.json)
