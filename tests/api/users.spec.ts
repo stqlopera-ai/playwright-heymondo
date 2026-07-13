@@ -1,19 +1,21 @@
 import { test, expect } from '@playwright/test';
 import { logAndParse } from '../../utils/api-logger';
+import { registerUser } from '../../utils/register-user';
 
 const API_URL = process.env.API_URL;
 
 test.describe('API - Users (authenticated)', () => {
 
   let token: string;
+  let userEmail: string;
   let adminToken: string;
 
   test.beforeAll(async ({ request }) => {
+    const { email, password } = await registerUser(request);
+    userEmail = email;
+
     const response = await request.post(`${API_URL}/users/login`, {
-      data: {
-        email: process.env.USER_EMAIL,
-        password: process.env.USER_PASSWORD,
-      }
+      data: { email, password }
     });
 
     const body = await logAndParse(response);
@@ -38,7 +40,7 @@ test.describe('API - Users (authenticated)', () => {
 
     const body = await logAndParse(response);
     expect(body).toHaveProperty('id');
-    expect(body).toHaveProperty('email', process.env.USER_EMAIL);
+    expect(body).toHaveProperty('email', userEmail);
     expect(body).toHaveProperty('first_name');
     expect(body).toHaveProperty('last_name');
     expect(body).toHaveProperty('address');

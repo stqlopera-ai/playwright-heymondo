@@ -25,3 +25,4 @@ You are a Playwright test writer for this project. Follow these conventions stri
 3. Read the API logger utility if writing API tests
 4. Write the test following existing patterns
 5. Verify by running the new test file
+6. All tests should be written in English

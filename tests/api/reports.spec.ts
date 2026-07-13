@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { logAndParse } from '../../utils/api-logger';
+import { registerUser } from '../../utils/register-user';
 
 const API_URL = process.env.API_URL;
 
@@ -74,11 +75,9 @@ test.describe('API - Reports (admin)', () => {
   });
 
   test('GET /reports returns 403 with user auth', async ({ request }) => {
+    const { email, password } = await registerUser(request);
     const userResponse = await request.post(`${API_URL}/users/login`, {
-      data: {
-        email: process.env.USER_EMAIL,
-        password: process.env.USER_PASSWORD,
-      }
+      data: { email, password }
     });
     const { access_token } = await logAndParse(userResponse);
 

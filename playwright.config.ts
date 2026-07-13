@@ -28,11 +28,11 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    baseURL: process.env.BASE_URL, // URL base, así en los tests solo pones page.goto('/login')
-    trace: 'on-first-retry',    // graba trace cuando reintenta un test fallido
-    screenshot: 'only-on-failure', // captura pantalla solo si falla
-    video: 'on-first-retry',    // graba video cuando reintenta
-    headless: true,
+    baseURL: process.env.BASE_URL, // base URL so tests only use page.goto('/login')
+    trace: 'on-first-retry',    // record trace on failed test retry
+    screenshot: 'only-on-failure', // capture screenshot only on failure
+    video: 'on-first-retry',    // record video on retry
+    headless: false,
 
   },
  
