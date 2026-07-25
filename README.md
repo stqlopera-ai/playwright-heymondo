@@ -48,44 +48,54 @@ cp .env.example .env
 
 ```bash
 # Run all tests
-npx playwright test
+npm test
 
 # Run API tests only
-npx playwright test tests/api
+npm run test:api
 
 # Run UI tests only
-npx playwright test tests/e2e
+npm run test:e2e
 
 # Run with visible browser
-npx playwright test --headed
+npm run test:headed
 
 # Debug mode (Playwright Inspector)
-npx playwright test --debug
+npm run test:debug
 
 # Run a single test file
 npx playwright test tests/api/auth.spec.ts
+
+# Run a single test by name
+npx playwright test -g "should create a brand"
 ```
 
 ### View Reports
 
 ```bash
-npx playwright show-report
+npm run report
 ```
 
 ## Project Structure
 
 ```
-├── fixtures/           # Custom Playwright fixtures (Page Object injection)
-├── pages/              # Page Object Model classes
+├── fixtures/               # Custom Playwright fixtures (Page Object injection)
+├── pages/                  # Page Object Model classes
 │   ├── LoginPage.ts
-│   └── ProductsPage.ts
-├── playwright/         # Auth state storage
+│   ├── ProductsPage.ts
+│   ├── ProductDetailPage.ts
+│   ├── CartPage.ts
+│   ├── CheckoutPage.ts
+│   ├── NavPage.ts
+│   └── RegisterPage.ts
+├── playwright/             # Auth state storage
 ├── tests/
-│   ├── api/            # API tests (auth, brands, categories, products, reports, users)
-│   ├── e2e/            # UI tests (login, products)
-│   └── auth.setup.ts   # Global authentication setup
-├── utils/              # Helpers (API logger)
-├── .github/workflows/  # CI/CD pipeline
+│   ├── api/                # API tests (auth, brands, categories, products, reports, users)
+│   ├── e2e/                # UI tests (login, products, cart, navigation, product-detail, register, full-journey)
+│   └── auth.setup.ts       # Global authentication setup
+├── utils/
+│   ├── api-logger.ts       # Response logging helper
+│   └── register-user.ts    # Dynamic user registration
+├── .github/workflows/      # CI/CD pipeline
 └── playwright.config.ts
 ```
 
@@ -100,10 +110,16 @@ npx playwright show-report
 - **Reports** — 7 admin-only report endpoints with role-based access
 - **Users** — profile, user list (admin), invoices, messages, registration
 
-### UI Tests (2 spec files)
+### UI Tests (8 spec files)
 
 - **Login** — valid login redirect, invalid credentials error
 - **Products** — product listing, search by text, category filter
+- **Cart** — add to cart from detail page, cart redirect without auth
+- **Navigation** — home, contact, category nav, sign-in, language switch, categories dropdown
+- **Product Detail** — product info, price format, specs, add-to-cart, quantity, out-of-stock
+- **Register** — valid registration, duplicate email error, form field presence
+- **Full Journey** — complete flow: register (API) → login (UI) → browse → cart → checkout → payment
+- **Flaky Demo** — intentionally flaky test (~50% failure rate)
 
 ## CI/CD
 

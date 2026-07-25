@@ -4,22 +4,22 @@
 
 ```bash
 # Run all tests
-npx playwright test
+npm test
 
 # Run API tests
-npx playwright test tests/api
+npm run test:api
 
 # Run UI tests
-npx playwright test tests/e2e
+npm run test:e2e
 
 # Run a specific test file
 npx playwright test tests/api/brands.spec.ts
 
 # Run with headed browser (visible UI)
-npx playwright test --headed
+npm run test:headed
 
 # Debug mode (Playwright Inspector)
-npx playwright test --debug
+npm run test:debug
 
 # Run a single test by name (grep)
 npx playwright test -g "should create a brand"
@@ -28,7 +28,7 @@ npx playwright test -g "should create a brand"
 npx playwright test --update-snapshots
 
 # View HTML report
-npx playwright show-report
+npm run report
 ```
 
 ## Project Structure
@@ -36,9 +36,9 @@ npx playwright show-report
 - `tests/api/` — API tests (REST via Playwright `request`)
 - `tests/e2e/` — UI tests (browser with Page Objects)
 - `tests/auth.setup.ts` — global auth setup (runs before UI tests)
-- `pages/` — Page Object Model classes (`LoginPage`, `ProductsPage`)
+- `pages/` — Page Object Model classes (`LoginPage`, `ProductsPage`, `ProductDetailPage`, `CartPage`, `CheckoutPage`, `NavPage`, `RegisterPage`)
 - `fixtures/` — custom Playwright fixtures (injects Page Objects into tests)
-- `utils/` — helpers (`api-logger.ts`)
+- `utils/` — helpers (`api-logger.ts`, `register-user.ts`)
 - `playwright.config.ts` — main config (Chromium only, HTML reporter)
 - `.github/workflows/playwright.yml` — CI/CD pipeline
 
