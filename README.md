@@ -33,8 +33,15 @@ npx playwright install --with-deps
 
 Copy the environment file and fill in your credentials:
 
+Create a `.env` file in the root directory with the required variables (e.g., copy from your local environment or set them directly):
+
 ```bash
-cp .env.example .env
+BASE_URL=https://practicesoftwaretesting.com
+API_URL=https://api.practicesoftwaretesting.com
+USER_EMAIL=your_email@example.com
+USER_PASSWORD=your_password
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your_admin_password
 ```
 
 | Variable | Description |
