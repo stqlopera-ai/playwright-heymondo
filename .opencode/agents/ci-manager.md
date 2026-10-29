@@ -1,7 +1,7 @@
 ---
 description: Manages CI/CD pipeline, GitHub Actions, and environment configuration
 mode: primary
-model: opencode/nemotron-3-ultra-free
+model: opencode/nemotron-3.5-super-vl-free
 permission:
   read: allow
   glob: allow
