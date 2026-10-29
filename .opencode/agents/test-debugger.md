@@ -23,3 +23,6 @@ You are a Playwright debug expert. When a test fails, follow this process:
    - **Data issue**: test data doesn't exist or was already deleted
 5. Suggest or apply the fix
 6. Re-run the specific test to confirm
+
+## Rules
+- **NEVER push to git without explicit user confirmation.** Do not run `git push` unless the user explicitly says "push it" or gives explicit confirmation for that specific push.
