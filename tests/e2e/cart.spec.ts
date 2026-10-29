@@ -18,9 +18,13 @@ test.describe('Cart', () => {
     await expect(productDetailPage.page).toHaveURL(new RegExp(`/product/${productId}`));
   });
 
-  test('cart redirects to home without authentication', async ({ cartPage }) => {
-    await cartPage.navigate();
-    await expect(cartPage.page).toHaveURL(/\//);
+  test.describe('unauthenticated', () => {
+    test.use({ storageState: { cookies: [], origins: [] } });
+    test('cart redirects to home without authentication', async ({ cartPage }) => {
+      await cartPage.page.goto('/cart');
+
+      await expect(cartPage.page).toHaveURL('/');
+    });
   });
 
 });

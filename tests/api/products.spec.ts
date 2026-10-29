@@ -105,24 +105,43 @@ test.describe('API - Products', () => {
     const imageId = images[0].id;
 
     const uniqueId = Date.now();
-    const response = await request.post(`${API_URL}/products`, {
-      data: {
-        name: `Test Product ${uniqueId}`,
-        description: 'Test description',
-        price: 19.99,
-        category_id: category.id,
-        brand_id: brand.id,
-        product_image_id: imageId,
-        is_location_offer: false,
-        is_rental: false,
+    let productId: string | number | undefined;
+
+    try {
+      const response = await request.post(`${API_URL}/products`, {
+        data: {
+          name: `Test Product ${uniqueId}`,
+          description: 'Test description',
+          price: 19.99,
+          category_id: category.id,
+          brand_id: brand.id,
+          product_image_id: imageId,
+          is_location_offer: false,
+          is_rental: false,
+        }
+      });
+
+      expect(response.status()).toBe(201);
+
+      const body = await logAndParse(response);
+      productId = body.id;
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('name', `Test Product ${uniqueId}`);
+    } finally {
+      if (productId) {
+        const loginResponse = await request.post(`${API_URL}/users/login`, {
+          data: {
+            email: process.env.ADMIN_EMAIL,
+            password: process.env.ADMIN_PASSWORD,
+          }
+        });
+        const { access_token } = await logAndParse(loginResponse);
+
+        await request.delete(`${API_URL}/products/${productId}`, {
+          headers: { Authorization: `Bearer ${access_token}` }
+        });
       }
-    });
-
-    expect(response.status()).toBe(201);
-
-    const body = await logAndParse(response);
-    expect(body).toHaveProperty('id');
-    expect(body).toHaveProperty('name', `Test Product ${uniqueId}`);
+    }
   });
 
   test('DELETE /products/{id} deletes product with admin auth', async ({ request }) => {

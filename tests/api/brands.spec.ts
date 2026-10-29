@@ -73,21 +73,40 @@ test.describe('API - Brands', () => {
 
   test('POST /brands creates a new brand', async ({ request }) => {
     const uniqueId = Date.now();
-    const response = await request.post(`${API_URL}/brands`, {
-      data: { name: `Test Brand ${uniqueId}`, slug: `test-brand-${uniqueId}` }
-    });
+    let brandId: string | number | undefined;
 
-    expect(response.status()).toBe(201);
+    try {
+      const response = await request.post(`${API_URL}/brands`, {
+        data: { name: `Test Brand ${uniqueId}`, slug: `test-brand-${uniqueId}` }
+      });
 
-    const body = await logAndParse(response);
-    expect(body).toHaveProperty('id');
-    expect(body).toHaveProperty('name', `Test Brand ${uniqueId}`);
-    expect(body).toHaveProperty('slug', `test-brand-${uniqueId}`);
+      expect(response.status()).toBe(201);
 
-    const allResponse = await request.get(`${API_URL}/brands`);
-    const allBrands = await logAndParse(allResponse);
-    const names = allBrands.map((b: any) => b.name);
-    expect(names).toContain(`Test Brand ${uniqueId}`);
+      const body = await logAndParse(response);
+      brandId = body.id;
+      expect(body).toHaveProperty('id');
+      expect(body).toHaveProperty('name', `Test Brand ${uniqueId}`);
+      expect(body).toHaveProperty('slug', `test-brand-${uniqueId}`);
+
+      const allResponse = await request.get(`${API_URL}/brands`);
+      const allBrands = await logAndParse(allResponse);
+      const names = allBrands.map((b: any) => b.name);
+      expect(names).toContain(`Test Brand ${uniqueId}`);
+    } finally {
+      if (brandId) {
+        const loginResponse = await request.post(`${API_URL}/users/login`, {
+          data: {
+            email: process.env.ADMIN_EMAIL,
+            password: process.env.ADMIN_PASSWORD,
+          }
+        });
+        const { access_token } = await logAndParse(loginResponse);
+
+        await request.delete(`${API_URL}/brands/${brandId}`, {
+          headers: { Authorization: `Bearer ${access_token}` }
+        });
+      }
+    }
   });
 
   test('DELETE /brands/{id} returns 401 without auth', async ({ request }) => {
