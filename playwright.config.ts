@@ -32,10 +32,11 @@ export default defineConfig({
     trace: 'on-first-retry',    // record trace on failed test retry
     screenshot: 'only-on-failure', // capture screenshot only on failure
     video: 'on-first-retry',    // record video on retry
-    headless: true,
-    launchOptions: {
-      args: ['--ozone-platform=wayland'],
-    },
+    // CI must stay headless. Local defaults to headed; use `npm run test:headed` / Inspector as usual.
+    headless: !!process.env.CI,
+    launchOptions: process.env.CI
+      ? undefined
+      : { args: ['--start-maximized'] },
   },
  
   /* Configure projects for major browsers */
@@ -47,10 +48,13 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
+        ...(process.env.CI
+          ? {}
+          : { viewport: null, deviceScaleFactor: undefined }),
         storageState: 'playwright/.auth/user.json',
-       },
+      },
        dependencies: ['setup'],
     },
  /* 

@@ -1,6 +1,7 @@
 ---
 description: Writes Playwright tests following project conventions
 mode: primary
+model: opencode/space-bunny-free
 permission:
   read: allow
   glob: allow

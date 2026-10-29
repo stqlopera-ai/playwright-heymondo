@@ -1,6 +1,7 @@
 ---
 description: Analyzes Playwright test failures and suggests fixes
 mode: primary
+model: opencode/muse-spark-1.3-contributor-free
 permission:
   read: allow
   glob: allow
