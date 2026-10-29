@@ -1,8 +1,10 @@
 import { test, expect } from '../../fixtures';
 
 test.describe('Flaky Demo', () => {
+  // Run only on demand (tagged and excluded from CI). Use: npx playwright test --grep "@flaky"
+  test.describe.configure({ mode: 'serial' });
 
-  test('this test is flaky - fails ~50% of the time', async ({ page }) => {
+  test('this test is flaky - fails ~50% of the time @flaky', async ({ page }) => {
     await page.goto('/');
 
     const randomDelay = Math.random() * 3000;

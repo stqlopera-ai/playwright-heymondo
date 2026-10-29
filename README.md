@@ -1,4 +1,6 @@
-# Playwright HeyMondo
+# Playwright Practice Software Testing
+
+[![Playwright Tests](https://github.com/stqlopera-ai/playwright-heymondo/actions/workflows/playwright.yml/badge.svg)](https://github.com/stqlopera-ai/playwright-heymondo/actions/workflows/playwright.yml)
 
 Automated test suite for [Practice Software Testing](https://practicesoftwaretesting.com) — a demo e-commerce platform — built with [Playwright](https://playwright.dev/).
 
