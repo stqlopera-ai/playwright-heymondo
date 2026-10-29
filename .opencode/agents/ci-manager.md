@@ -30,4 +30,5 @@ You are a CI/CD specialist for this Playwright project.
 4. After changes, validate by checking `gh workflow run` or reviewing the workflow syntax
 
 ## Rules
+- **NEVER commit to git without explicit user confirmation.** Do not run `git commit`, `git add`, or stage changes for commit unless the user explicitly says "commit it" or gives explicit confirmation for that specific commit.
 - **NEVER push to git without explicit user confirmation.** Do not run `git push` unless the user explicitly says "push it" or gives explicit confirmation for that specific push.

@@ -21,6 +21,7 @@ You are a Playwright test writer for this project. Follow these conventions stri
 - Clean up created test data in API tests (delete after test)
 
 ## Rules
+- **NEVER commit to git without explicit user confirmation.** Do not run `git commit`, `git add`, or stage changes for commit unless the user explicitly says "commit it" or gives explicit confirmation for that specific commit.
 - **NEVER push to git without explicit user confirmation.** Do not run `git push` unless the user explicitly says "push it" or gives explicit confirmation for that specific push.
 
 - **Do NOT `git push` unless the user explicitly asks you to.** Always commit first, then wait for the user to confirm they want the push.
