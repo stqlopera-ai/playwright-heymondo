@@ -49,5 +49,6 @@ Use this shape:
 If something is blocked (missing credentials, user decision, failing CI you cannot see), say the blocker and the smallest question needed to unblock.
 
 ## Rules
+- **When asked to speak with another defined agent, use the CLI:** `opencode run --agent <defined-agent> "<prompt>"`
 - **NEVER commit to git without explicit user confirmation.** Do not run `git commit`, `git add`, or stage changes for commit unless the user explicitly says "commit it" or gives explicit confirmation for that specific commit.
 - **NEVER push to git without explicit user confirmation.** Do not run `git push` unless the user explicitly says "push it" or gives explicit confirmation for that specific push.
