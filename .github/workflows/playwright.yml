@@ -24,11 +24,12 @@ jobs:
       run: |
         mkdir -p .quality-gate
         # Run tests with JSON reporter; tee output so we can extract JSON even if logs are mixed
-        npx playwright test --grep-invert "flaky" --reporter=json 2>&1 | tee .quality-gate/raw.log
-        # Extract last complete JSON object from output
+        npx playwright test --grep-invert "flaky" --reporter=json 2>&1 | tee .quality-gate/raw.log || true
+        # Extract JSON object from output
         node << 'EOF'
         const fs = require('fs');
         const log = fs.readFileSync('.quality-gate/raw.log', 'utf8');
+        // Try from end first
         let depth = 0, inString = false, stringChar = null, escape = false, start = -1;
         for (let i = log.length - 1; i >= 0; i--) {
           const ch = log[i];
@@ -56,9 +57,38 @@ jobs:
             continue;
           }
         }
+        // Try from start
+        depth = 0; inString = false; stringChar = null; escape = false; start = -1;
+        for (let i = 0; i < log.length; i++) {
+          const ch = log[i];
+          if (escape) { escape = false; continue; }
+          if (ch === '\\') { escape = true; continue; }
+          if (inString) {
+            if (ch === stringChar) { inString = false; stringChar = null; }
+            continue;
+          }
+          if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
+          if (ch === '{') { if (depth === 0) start = i; depth++; continue; }
+          if (ch === '}') {
+            depth--;
+            if (depth === 0 && start !== -1) {
+              const json = log.slice(start, i + 1);
+              try {
+                JSON.parse(json);
+                fs.writeFileSync('.quality-gate/results.json', json);
+                process.exit(0);
+              } catch (e) {
+                start = -1; depth = 0;
+                continue;
+              }
+            }
+            continue;
+          }
+        }
         console.error('QUALITY GATE ERROR: could not extract JSON from test output');
-        process.exit(1);
+        process.exit(0);
         EOF
+        ls -la .quality-gate/ || true
       env:
         BASE_URL: ${{ vars.BASE_URL }}
         API_URL: ${{ vars.API_URL }}
@@ -76,6 +106,14 @@ jobs:
         const REQUIRE_TESTS_EXECUTED = (process.env.REQUIRE_TESTS_EXECUTED || 'true').toLowerCase() !== 'false';
 
         const path = '.quality-gate/results.json';
+        if (!fs.existsSync(path)) {
+          console.error(`QUALITY GATE ERROR: ${path} not found. See .quality-gate/raw.log for details.`);
+          try {
+            const log = fs.readFileSync('.quality-gate/raw.log','utf8');
+            console.error(log.slice(-4000));
+          } catch(e) {}
+          process.exit(1);
+        }
         let report;
         try {
           report = JSON.parse(fs.readFileSync(path, 'utf8'));
