@@ -23,7 +23,69 @@ jobs:
       continue-on-error: true
       run: |
         mkdir -p .quality-gate
-        npx playwright test --grep-invert "flaky" --reporter=json=.quality-gate/results.json 2>&1 | tee .quality-gate/raw.log || true
+        npx playwright test --grep-invert "flaky" --reporter=json 2>&1 | tee .quality-gate/raw.log || true
+        node << 'EOF'
+        const fs = require('fs');
+        const log = fs.readFileSync('.quality-gate/raw.log', 'utf8');
+        // Try to find first complete JSON object from start
+        let depth = 0, inString = false, stringChar = null, escape = false, start = -1;
+        for (let i = 0; i < log.length; i++) {
+          const ch = log[i];
+          if (escape) { escape = false; continue; }
+          if (ch === '\\') { escape = true; continue; }
+          if (inString) {
+            if (ch === stringChar) { inString = false; stringChar = null; }
+            continue;
+          }
+          if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
+          if (ch === '{') { if (depth === 0) start = i; depth++; continue; }
+          if (ch === '}') {
+            depth--;
+            if (depth === 0 && start !== -1) {
+              const json = log.slice(start, i + 1);
+              try {
+                JSON.parse(json);
+                fs.writeFileSync('.quality-gate/results.json', json);
+                process.exit(0);
+              } catch (e) {
+                start = -1; depth = 0;
+                continue;
+              }
+            }
+            continue;
+          }
+        }
+        // Try from end
+        depth = 0; inString = false; stringChar = null; escape = false; start = -1;
+        for (let i = log.length - 1; i >= 0; i--) {
+          const ch = log[i];
+          if (escape) { escape = false; continue; }
+          if (ch === '\\') { escape = true; continue; }
+          if (inString) {
+            if (ch === stringChar) { inString = false; stringChar = null; }
+            continue;
+          }
+          if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
+          if (ch === '}') { if (depth === 0) start = i; depth++; continue; }
+          if (ch === '{') {
+            depth--;
+            if (depth === 0 && start !== -1) {
+              const json = log.slice(i, start + 1);
+              try {
+                JSON.parse(json);
+                fs.writeFileSync('.quality-gate/results.json', json);
+                process.exit(0);
+              } catch (e) {
+                start = -1; depth = 0;
+                continue;
+              }
+            }
+            continue;
+          }
+        }
+        console.error('QUALITY GATE ERROR: could not extract JSON');
+        process.exit(0);
+        EOF
         ls -la .quality-gate/ || true
       env:
         BASE_URL: ${{ vars.BASE_URL }}
