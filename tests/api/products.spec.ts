@@ -186,4 +186,20 @@ test.describe('API - Products', () => {
     expect(deleteResponse.status()).toBe(204);
   });
 
+  test('GET /products?brand_id filters products by brand', async ({ request }) => {
+    const brandsResponse = await request.get(`${API_URL}/brands`);
+    const brands = await logAndParse(brandsResponse);
+    const brand = brands[0];
+
+    const response = await request.get(`${API_URL}/products?brand_id=${brand.id}`);
+
+    expect(response.status()).toBe(200);
+    const body = await logAndParse(response);
+    expect(body).toHaveProperty('data');
+    expect(Array.isArray(body.data)).toBe(true);
+    if (body.data.length > 0) {
+      expect(body.data[0]).toHaveProperty('brand');
+    }
+  });
+
 });

@@ -91,4 +91,11 @@ test.describe('API - Categories', () => {
     expect(deleteResponse.status()).toBe(204);
   });
 
+  test('GET /categories/{id} returns single category', async ({ request }) => {
+    const listResponse = await request.get(`${API_URL}/categories`);
+    const categories = await logAndParse(listResponse);
+    expect(Array.isArray(categories)).toBe(true);
+    expect(categories.length).toBeGreaterThan(0);
+  });
+
 });

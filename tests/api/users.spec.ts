@@ -126,4 +126,57 @@ test.describe('API - Users (authenticated)', () => {
     expect(deleteResponse.status()).toBe(204);
   });
 
+  test('GET /users/{id} returns user by id with admin auth', async ({ request }) => {
+    const listResponse = await request.get(`${API_URL}/users`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    expect(listResponse.status()).toBe(200);
+    const listBody = await logAndParse(listResponse);
+    const userId = listBody.data[0].id;
+
+    const response = await request.get(`${API_URL}/users/${userId}`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+
+    expect(response.status()).toBe(200);
+    const body = await logAndParse(response);
+    expect(body).toHaveProperty('id', userId);
+    expect(body).toHaveProperty('email');
+    expect(body).toHaveProperty('first_name');
+    expect(body).toHaveProperty('last_name');
+  });
+
+  test('PATCH /users/{id} updates user with admin auth', async ({ request }) => {
+    const uniqueId = Date.now();
+    const registerResponse = await request.post(`${API_URL}/users/register`, {
+      data: {
+        first_name: 'Patch',
+        last_name: 'User' + uniqueId,
+        email: 'patchuser' + uniqueId + '@test.com',
+        password: 'Xy' + uniqueId + '@!zSecure',
+        phone: '1234567890',
+      }
+    });
+    expect(registerResponse.status()).toBe(201);
+    const { id: userId } = await logAndParse(registerResponse);
+
+    try {
+      const updateResponse = await request.patch(`${API_URL}/users/${userId}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+        data: {
+          first_name: 'Updated',
+          last_name: 'Name',
+        }
+      });
+
+      expect(updateResponse.status()).toBe(200);
+      const body = await logAndParse(updateResponse);
+      expect(body).toBeTruthy();
+    } finally {
+      await request.delete(`${API_URL}/users/${userId}`, {
+        headers: { Authorization: `Bearer ${adminToken}` }
+      });
+    }
+  });
+
 });
