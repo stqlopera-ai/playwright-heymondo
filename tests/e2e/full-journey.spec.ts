@@ -12,7 +12,7 @@ async function findInStockProduct(request: any): Promise<{ id: string; name: str
 
 test.describe('Full E2E Journey', () => {
 
-  test('register, login, browse, add to cart, and checkout', async ({
+  test('register, login, browse, add to cart, and checkout @cloudflare', async ({
     page, request, loginPage, productDetailPage, checkoutPage,
   }) => {
     // Step 1: Register a new user via API

@@ -2,7 +2,7 @@ import { test, expect } from '../../fixtures';
 
 test.describe('Brands', () => {
 
-  test('created brand appears in brands list', async ({ loginPage, brandsPage, createdBrand }) => {
+  test('created brand appears in brands list @cloudflare', async ({ loginPage, brandsPage, createdBrand }) => {
     await loginPage.navigate();
     await loginPage.login(process.env.ADMIN_EMAIL!, process.env.ADMIN_PASSWORD!);
     await expect(loginPage.page).toHaveURL(/\/admin/);
@@ -12,7 +12,7 @@ test.describe('Brands', () => {
     await expect(brandsPage.brandRow(createdBrand.name)).toBeVisible();
   });
 
-  test('brand detail page shows created brand name', async ({ loginPage, brandDetailPage, createdBrand }) => {
+  test('brand detail page shows created brand name @cloudflare', async ({ loginPage, brandDetailPage, createdBrand }) => {
     await loginPage.navigate();
     await loginPage.login(process.env.ADMIN_EMAIL!, process.env.ADMIN_PASSWORD!);
     await expect(loginPage.page).toHaveURL(/\/admin/);

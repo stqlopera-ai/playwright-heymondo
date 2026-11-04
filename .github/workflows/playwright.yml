@@ -23,7 +23,7 @@ jobs:
       continue-on-error: true
       run: |
         mkdir -p .quality-gate
-        npx playwright test --grep-invert "flaky" --reporter=html,json 2>&1 | tee .quality-gate/raw.log || true
+        npx playwright test --grep-invert "flaky" --grep-invert "@cloudflare" --reporter=html,json 2>&1 | tee .quality-gate/raw.log || true
         node << 'EOF'
         const fs = require('fs');
         const log = fs.readFileSync('.quality-gate/raw.log', 'utf8');
