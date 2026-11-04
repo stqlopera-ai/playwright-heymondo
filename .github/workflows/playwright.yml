@@ -19,7 +19,46 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
-      run: npx playwright test --grep-invert "flaky"
+      id: tests
+      continue-on-error: true
+      run: |
+        mkdir -p .quality-gate
+        # Run tests with JSON reporter; tee output so we can extract JSON even if logs are mixed
+        npx playwright test --grep-invert "flaky" --reporter=json 2>&1 | tee .quality-gate/raw.log
+        # Extract last complete JSON object from output
+        node << 'EOF'
+        const fs = require('fs');
+        const log = fs.readFileSync('.quality-gate/raw.log', 'utf8');
+        let depth = 0, inString = false, stringChar = null, escape = false, start = -1;
+        for (let i = log.length - 1; i >= 0; i--) {
+          const ch = log[i];
+          if (escape) { escape = false; continue; }
+          if (ch === '\\') { escape = true; continue; }
+          if (inString) {
+            if (ch === stringChar) { inString = false; stringChar = null; }
+            continue;
+          }
+          if (ch === '"' || ch === "'") { inString = true; stringChar = ch; continue; }
+          if (ch === '}') { if (depth === 0) start = i; depth++; continue; }
+          if (ch === '{') {
+            depth--;
+            if (depth === 0 && start !== -1) {
+              const json = log.slice(i, start + 1);
+              try {
+                JSON.parse(json);
+                fs.writeFileSync('.quality-gate/results.json', json);
+                process.exit(0);
+              } catch (e) {
+                start = -1; depth = 0;
+                continue;
+              }
+            }
+            continue;
+          }
+        }
+        console.error('QUALITY GATE ERROR: could not extract JSON from test output');
+        process.exit(1);
+        EOF
       env:
         BASE_URL: ${{ vars.BASE_URL }}
         API_URL: ${{ vars.API_URL }}
@@ -27,6 +66,65 @@ jobs:
         USER_PASSWORD: ${{ secrets.USER_PASSWORD }}
         ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
         ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+    - name: Test quality gate
+      run: |
+        node <<'NODE'
+        const fs = require('fs');
+
+        const MIN_PASS_RATE = parseFloat(process.env.MIN_PASS_RATE || '100');
+        const MAX_ALLOWED_FAILURES = parseInt(process.env.MAX_ALLOWED_FAILURES || '0', 10);
+        const REQUIRE_TESTS_EXECUTED = (process.env.REQUIRE_TESTS_EXECUTED || 'true').toLowerCase() !== 'false';
+
+        const path = '.quality-gate/results.json';
+        let report;
+        try {
+          report = JSON.parse(fs.readFileSync(path, 'utf8'));
+        } catch (err) {
+          console.error(`QUALITY GATE ERROR: could not parse ${path}: ${err.message}`);
+          console.error('This may indicate a setup/infrastructure failure. Check raw.log/artifacts.');
+          process.exit(1);
+        }
+
+        const stats = report.stats || {};
+        const passed = stats.expected || 0;
+        const failed = stats.unexpected || 0;
+        const skipped = stats.skipped || 0;
+        const flaky = stats.flaky || 0;
+        const executed = passed + failed;
+        const passRate = executed ? (passed / executed) * 100 : 100;
+
+        console.log('Test quality gate');
+        console.log(`  passed:   ${passed}`);
+        console.log(`  failed:   ${failed}`);
+        console.log(`  skipped:  ${skipped}`);
+        console.log(`  flaky:    ${flaky}`);
+        console.log(`  executed: ${executed}`);
+        console.log(`  pass rate: ${passRate.toFixed(2)}%`);
+        console.log(`  thresholds: min pass rate ${MIN_PASS_RATE}%, max failures ${MAX_ALLOWED_FAILURES}`);
+        console.log(`  require tests executed: ${REQUIRE_TESTS_EXECUTED}`);
+
+        const breaches = [];
+        if (REQUIRE_TESTS_EXECUTED && executed === 0) {
+          breaches.push('no tests executed (possible setup/infrastructure failure)');
+        }
+        if (failed > MAX_ALLOWED_FAILURES) {
+          breaches.push(`too many failed tests: ${failed} (max ${MAX_ALLOWED_FAILURES})`);
+        }
+        if (executed > 0 && passRate < MIN_PASS_RATE) {
+          breaches.push(`pass rate below threshold: ${passRate.toFixed(2)}% (min ${MIN_PASS_RATE}%)`);
+        }
+
+        if (breaches.length) {
+          console.error('QUALITY GATE FAILED:');
+          breaches.forEach((b) => console.error(`  - ${b}`));
+          process.exit(1);
+        }
+        console.log('QUALITY GATE PASSED');
+        NODE
+      env:
+        MIN_PASS_RATE: ${{ vars.MIN_PASS_RATE || '100' }}
+        MAX_ALLOWED_FAILURES: ${{ vars.MAX_ALLOWED_FAILURES || '0' }}
+        REQUIRE_TESTS_EXECUTED: ${{ vars.REQUIRE_TESTS_EXECUTED || 'true' }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
