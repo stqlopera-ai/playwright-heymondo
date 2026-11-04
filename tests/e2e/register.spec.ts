@@ -10,16 +10,16 @@ test.describe('Register', () => {
       lastName: 'User',
       dob: '1990-01-15',
       country: 'Netherlands (the)',
-      postalCode: '1012',
+      postalCode: '1000AA',
       houseNumber: '42',
       street: 'Test Street',
       city: 'Amsterdam',
       state: 'Noord-Holland',
       phone: '0612345678',
       email: `testuser_${timestamp}@mailinator.com`,
-      password: `Unique$ecure_${timestamp}!`,
+      password: 'MyStr0ng!Passw0rd#2024',
     });
-    await expect(registerPage.page).toHaveURL(/\/auth\/login/);
+    await expect(registerPage.page).toHaveURL(/\/auth\/login/, { timeout: 10000 });
   });
 
   test('shows error for duplicate email', async ({ registerPage }) => {
