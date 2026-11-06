@@ -34,6 +34,7 @@ jobs:
           --profile ci \
           --format progress \
           --format json:quality-gate/cucumber.json \
+          --format html:quality-gate/cucumber.html \
           2>&1 | tee quality-gate/raw.log || true
         echo "--- quality-gate contents ---"
         ls -la quality-gate/ || true
