@@ -23,18 +23,13 @@ jobs:
     - name: Install Playwright Chromium
       run: npx playwright install chromium --with-deps
 
-    - name: Run Cucumber BDD scenarios (@cloudflare)
+    - name: Run Cucumber BDD scenarios (all)
       id: bdd
       continue-on-error: true
       run: |
         mkdir -p .quality-gate
-        # NOTE: cucumber.json "default" profile excludes @cloudflare (tags: "not @cloudflare").
-        # Use the "ci" profile (tags: "@cloudflare") so scenarios actually execute.
-        # Do NOT rely on CLI --tags to override default profile tags; Cucumber combines them (AND).
-        # RISK: these scenarios drive the public demo UI (practicesoftwaretesting.com) via Playwright,
-        # and Cloudflare blocks that host from GitHub Actions IP ranges. Scenario failures here are
-        # infrastructure-related signals, not necessarily product regressions. The step continues on
-        # error so the quality gate below can report real results instead of a misleading pass/fail.
+        # Run all scenarios including @cloudflare (uses "ci" profile in cucumber.json).
+        # Note: @cloudflare-tagged UI scenarios may be blocked by Cloudflare in GitHub Actions.
         npx cucumber-js \
           --profile ci \
           --format json:.quality-gate/cucumber.json \
@@ -88,14 +83,19 @@ jobs:
 
         console.log(`BDD scenarios: total=${total} passed=${passed} failed=${failed}`);
         if (total === 0) {
-          console.error('QUALITY GATE FAILED: no scenarios executed (setup/infrastructure failure or tag filter excluded everything).');
+          console.error('QUALITY GATE FAILED: no scenarios executed.');
           try { console.error(fs.readFileSync('.quality-gate/raw.log','utf8').slice(-4000)); } catch(e) {}
           process.exit(1);
         }
         if (failed > 0) {
-          console.log(`NOTE: ${failed} scenario(s) failed -- likely Cloudflare blocking the public demo UI in CI (infra signal; build not blocked because scenarios executed).`);
+          console.error(`QUALITY GATE FAILED: ${failed} scenario(s) failed (all executed scenarios must pass).`);
+          process.exit(1);
         }
-        console.log('QUALITY GATE PASSED (scenarios executed > 0)');
+        if (passed !== total) {
+          console.error(`QUALITY GATE FAILED: not all scenarios passed (${passed}/${total}).`);
+          process.exit(1);
+        }
+        console.log('QUALITY GATE PASSED (all executed scenarios passed)');
         NODE
 
     - uses: actions/upload-artifact@v4
