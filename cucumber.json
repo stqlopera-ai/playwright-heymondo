@@ -5,5 +5,12 @@
     "format": ["progress"],
     "paths": ["tests/features/**/*.feature"],
     "tags": "not @cloudflare"
+  },
+  "ci": {
+    "requireModule": ["ts-node/register"],
+    "require": ["tests/steps/**/*.ts"],
+    "format": ["progress"],
+    "paths": ["tests/features/**/*.feature"],
+    "tags": "@cloudflare"
   }
 }
