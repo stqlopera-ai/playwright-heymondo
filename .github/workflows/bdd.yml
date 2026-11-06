@@ -27,14 +27,16 @@ jobs:
       id: bdd
       continue-on-error: true
       run: |
-        mkdir -p .quality-gate
-        # Run all scenarios including @cloudflare (uses "ci" profile in cucumber.json).
-        # Note: @cloudflare-tagged UI scenarios may be blocked by Cloudflare in GitHub Actions.
-        npx cucumber-js \
-          --profile ci \
-          --format json:.quality-gate/cucumber.json \
-          --format progress \
-          2>&1 | tee .quality-gate/raw.log || true
+          mkdir -p .quality-gate
+          # Run all scenarios including @cloudflare (uses "ci" profile in cucumber.json).
+          # Note: @cloudflare-tagged UI scenarios may be blocked by Cloudflare in GitHub Actions.
+          npx cucumber-js \
+            --profile ci \
+            --format progress \
+            --format json:.quality-gate/cucumber.json \
+            2>&1 | tee .quality-gate/raw.log || true
+          echo "--- .quality-gate contents ---"
+          ls -la .quality-gate/ || true
       env:
         BASE_URL: ${{ vars.BASE_URL }}
         API_URL: ${{ vars.API_URL }}
