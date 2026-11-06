@@ -27,16 +27,16 @@ jobs:
       id: bdd
       continue-on-error: true
       run: |
-          mkdir -p .quality-gate
-          # Run all scenarios including @cloudflare (uses "ci" profile in cucumber.json).
-          # Note: @cloudflare-tagged UI scenarios may be blocked by Cloudflare in GitHub Actions.
-          npx cucumber-js \
-            --profile ci \
-            --format progress \
-            --format json:.quality-gate/cucumber.json \
-            2>&1 | tee .quality-gate/raw.log || true
-          echo "--- .quality-gate contents ---"
-          ls -la .quality-gate/ || true
+        mkdir -p quality-gate
+        # Run all scenarios including @cloudflare (uses "ci" profile in cucumber.json).
+        # Note: @cloudflare-tagged UI scenarios may be blocked by Cloudflare in GitHub Actions.
+        npx cucumber-js \
+          --profile ci \
+          --format progress \
+          --format json:quality-gate/cucumber.json \
+          2>&1 | tee quality-gate/raw.log || true
+        echo "--- quality-gate contents ---"
+        ls -la quality-gate/ || true
       env:
         BASE_URL: ${{ vars.BASE_URL }}
         API_URL: ${{ vars.API_URL }}
@@ -49,7 +49,7 @@ jobs:
         // Primary: parse Cucumber summary from raw.log (robust across cucumber-js JSON format quirks)
         let total = 0, passed = 0, failed = 0;
         try {
-          const raw = fs.readFileSync('.quality-gate/raw.log', 'utf8');
+          const raw = fs.readFileSync('quality-gate/raw.log', 'utf8');
           // Examples: "6 scenarios (6 failed)" / "6 scenarios (1 failed, 5 passed)" / "6 scenarios (6 passed)"
           const sm = raw.match(/(\d+)\s+scenarios?\s*\(([^)]+)\)/i);
           if (sm) {
@@ -63,7 +63,7 @@ jobs:
         // Fallback: try cucumber.json if raw parsing found nothing
         if (total === 0) {
           try {
-            const path = '.quality-gate/cucumber.json';
+            const path = 'quality-gate/cucumber.json';
             if (fs.existsSync(path)) {
               const data = JSON.parse(fs.readFileSync(path, 'utf8'));
               const features = Array.isArray(data) ? data : (data && data.features) ? data.features : [];
@@ -86,7 +86,7 @@ jobs:
         console.log(`BDD scenarios: total=${total} passed=${passed} failed=${failed}`);
         if (total === 0) {
           console.error('QUALITY GATE FAILED: no scenarios executed.');
-          try { console.error(fs.readFileSync('.quality-gate/raw.log','utf8').slice(-4000)); } catch(e) {}
+          try { console.error(fs.readFileSync('quality-gate/raw.log','utf8').slice(-4000)); } catch(e) {}
           process.exit(1);
         }
         if (failed > 0) {
@@ -104,5 +104,6 @@ jobs:
       if: ${{ !cancelled() }}
       with:
         name: bdd-report
-        path: .quality-gate/
+        path: quality-gate/
         retention-days: 30
+        if-no-files-found: warn
